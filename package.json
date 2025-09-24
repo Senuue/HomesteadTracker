@@ -1,6 +1,5 @@
 {
   "name": "homestead-tracker",
-  "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
@@ -12,18 +11,18 @@
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:report": "vitest run --coverage && node scripts/coverage-report.cjs",
-    "test:unit": "vitest src/__tests__/*storage*.test.*",
-    "test:unit:run": "vitest run src/__tests__/*storage*.test.*",
-    "test:unit:coverage": "vitest run --coverage src/__tests__/*storage*.test.*",
-    "test:unit:report": "vitest run --coverage src/__tests__/*storage*.test.* && node scripts/coverage-report.cjs",
-    "test:int": "vitest src/__tests__/*context*.test.*",
-    "test:int:run": "vitest run src/__tests__/*context*.test.*",
-    "test:int:coverage": "vitest run --coverage src/__tests__/*context*.test.*",
-    "test:int:report": "vitest run --coverage src/__tests__/*context*.test.* && node scripts/coverage-report.cjs",
-    "test:component": "vitest src/__tests__/*Chicken*.test.*",
-    "test:component:run": "vitest run src/__tests__/*Chicken*.test.*",
-    "test:component:coverage": "vitest run --coverage src/__tests__/*Chicken*.test.*",
-    "test:component:report": "vitest run --coverage src/__tests__/*Chicken*.test.* && node scripts/coverage-report.cjs"
+    "test:unit": "vitest unit",
+    "test:unit:run": "vitest run unit",
+    "test:unit:coverage": "vitest run --coverage unit",
+    "test:unit:report": "vitest run --coverage unit && node scripts/coverage-report.cjs",
+    "test:int": "vitest integration",
+    "test:int:run": "vitest run integration",
+    "test:int:coverage": "vitest run --coverage integration",
+    "test:int:report": "vitest run --coverage integration && node scripts/coverage-report.cjs",
+    "test:component": "vitest component",
+    "test:component:run": "vitest run component",
+    "test:component:coverage": "vitest run --coverage component",
+    "test:component:report": "vitest run --coverage component && node scripts/coverage-report.cjs"
   },
   "dependencies": {
     "date-fns": "2.30.0",

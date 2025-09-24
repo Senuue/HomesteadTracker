@@ -6,6 +6,7 @@ export default defineConfig({
     setupFiles: ['./src/setupTests.js'],
     globals: true,
     css: false,
+    include: ['src/__tests__/**/*.test.{js,jsx}'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'html', 'json-summary'],
