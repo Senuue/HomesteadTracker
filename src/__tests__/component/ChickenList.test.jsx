@@ -4,7 +4,7 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithProvider } from '../../test-utils';
 import ChickenList from '../../components/ChickenList';
-import { storage } from '../../utils/storage';
+import { api } from '../../services/apiClient';
 
 const noop = () => {};
 
@@ -14,8 +14,8 @@ describe('ChickenList filtering and tag chips', () => {
   });
 
   it('filters by text, status, and tags (clickable chips and autocomplete)', async () => {
-    // Seed data
-    storage.saveChickens([
+    // Seed via API mock and render
+    const rows = [
       {
         id: '1',
         batchName: 'Spring Broilers',
@@ -23,7 +23,6 @@ describe('ChickenList filtering and tag chips', () => {
         currentCount: 10,
         status: 'Active',
         tags: ['spring', 'broilers'],
-        feedLogs: [],
         createdAt: new Date().toISOString(),
       },
       {
@@ -33,18 +32,22 @@ describe('ChickenList filtering and tag chips', () => {
         currentCount: 12,
         status: 'Culled',
         tags: ['fall', 'layers'],
-        feedLogs: [],
         createdAt: new Date().toISOString(),
       },
-    ]);
+    ];
+    api.listChickens.mockResolvedValueOnce(rows);
 
     renderWithProvider(
       <ChickenList onEdit={noop} onAdd={noop} onOpenFeedLogs={noop} onOpenTagManager={noop} />
     );
 
+    // Wait for the list and search input to appear
+    await screen.findByText(/Spring Broilers/i);
+    const searchInput = await screen.findByPlaceholderText(/search batches/i);
+
     // Text search
-    await userEvent.type(screen.getByPlaceholderText(/search batches/i), 'Spring');
-    expect(screen.getByText(/Spring Broilers/i)).toBeInTheDocument();
+    await userEvent.type(searchInput, 'Spring');
+    expect(await screen.findByText(/Spring Broilers/i)).toBeInTheDocument();
     expect(screen.queryByText(/Fall Layers/i)).not.toBeInTheDocument();
 
     // Clear text search by selecting the input and clearing it

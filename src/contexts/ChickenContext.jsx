@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { storage } from '../utils/storage';
+import { api } from '../services/apiClient';
 
 const ChickenContext = createContext();
 
@@ -15,13 +15,24 @@ export const useChicken = () => {
 export const ChickenProvider = ({ children }) => {
   const [chickens, setChickens] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [feedLogsByChicken, setFeedLogsByChicken] = useState({});
 
-  // Load chickens from storage on mount
+  const refreshChickens = async () => {
+    try {
+      const rows = await api.listChickens();
+      setChickens(rows);
+    } catch (error) {
+      console.warn('Failed to refresh chickens:', error);
+    }
+  };
+
+  // Load chickens from API on mount
   useEffect(() => {
-    const loadChickens = () => {
+    const loadChickens = async () => {
+      setLoading(true);
       try {
-        const storedChickens = storage.getChickens();
-        setChickens(storedChickens);
+        const rows = await api.listChickens();
+        setChickens(rows);
       } catch (error) {
         console.error('Error loading chickens:', error);
       } finally {
@@ -32,51 +43,42 @@ export const ChickenProvider = ({ children }) => {
     loadChickens();
   }, []);
 
-  const addChicken = (chickenData) => {
+  const addChicken = async (chickenData) => {
     try {
-      const newChicken = storage.addChicken(chickenData);
-      setChickens(prev => [...prev, newChicken]);
-      return newChicken;
+      const created = await api.addChicken(chickenData);
+      setChickens(prev => [created, ...prev]);
+      return created;
     } catch (error) {
       console.error('Error adding chicken:', error);
       throw error;
     }
   };
 
-  const updateChicken = (id, updates) => {
+  const updateChicken = async (id, updates) => {
     try {
-      const updatedChicken = storage.updateChicken(id, updates);
-      if (updatedChicken) {
-        setChickens(prev => 
-          prev.map(chicken => 
-            chicken.id === id ? updatedChicken : chicken
-          )
-        );
-        return updatedChicken;
-      }
-      return null;
+      const updated = await api.updateChicken(id, updates);
+      setChickens(prev => prev.map(c => (c.id === id ? updated : c)));
+      return updated;
     } catch (error) {
       console.error('Error updating chicken:', error);
       throw error;
     }
   };
 
-  const deleteChicken = (id) => {
+  const deleteChicken = async (id) => {
     try {
-      const success = storage.deleteChicken(id);
-      if (success) {
-        setChickens(prev => prev.filter(chicken => chicken.id !== id));
-      }
-      return success;
+      await api.deleteChicken(id);
+      setChickens(prev => prev.filter(c => c.id !== id));
+      // cleanup logs cache
+      setFeedLogsByChicken(prev => { const n = { ...prev }; delete n[id]; return n; });
+      return true;
     } catch (error) {
       console.error('Error deleting chicken:', error);
       throw error;
     }
   };
 
-  const getChickenById = (id) => {
-    return chickens.find(chicken => chicken.id === id) || null;
-  };
+  const getChickenById = (id) => chickens.find(chicken => chicken.id === id) || null;
 
   const value = {
     chickens,
@@ -85,48 +87,78 @@ export const ChickenProvider = ({ children }) => {
     updateChicken,
     deleteChicken,
     getChickenById,
-    // Feed log API exposed via context
-    getFeedLogs: (chickenId) => storage.getFeedLogs(chickenId),
-    addFeedLog: (chickenId, entry) => {
-      const created = storage.addFeedLog(chickenId, entry);
-      if (created) {
-        // Sync state: update that batch
-        setChickens(prev => prev.map(c => c.id === chickenId ? storage.getChickenById(chickenId) : c));
-      }
+    // Feed log API (with cache)
+    getFeedLogs: (chickenId) => feedLogsByChicken[chickenId] || [],
+    refreshFeedLogs: async (chickenId) => {
+      const logs = await api.listFeedLogs(chickenId);
+      setFeedLogsByChicken(prev => ({ ...prev, [chickenId]: logs }));
+      return logs;
+    },
+    addFeedLog: async (chickenId, entry) => {
+      const created = await api.addFeedLog(chickenId, entry);
+      setFeedLogsByChicken(prev => ({ ...prev, [chickenId]: [created, ...(prev[chickenId] || [])] }));
+      // refresh chickens so feed aggregates reflect immediately
+      await refreshChickens();
       return created;
     },
-    updateFeedLog: (chickenId, logId, updates) => {
-      const updated = storage.updateFeedLog(chickenId, logId, updates);
-      if (updated) {
-        setChickens(prev => prev.map(c => c.id === chickenId ? storage.getChickenById(chickenId) : c));
-      }
+    updateFeedLog: async (chickenId, logId, updates) => {
+      const updated = await api.updateFeedLog(chickenId, logId, updates);
+      setFeedLogsByChicken(prev => ({
+        ...prev,
+        [chickenId]: (prev[chickenId] || []).map(l => (l.id === logId ? updated : l)),
+      }));
+      await refreshChickens();
       return updated;
     },
-    deleteFeedLog: (chickenId, logId) => {
-      const removed = storage.deleteFeedLog(chickenId, logId);
-      if (removed) {
-        setChickens(prev => prev.map(c => c.id === chickenId ? storage.getChickenById(chickenId) : c));
-      }
-      return removed;
+    deleteFeedLog: async (chickenId, logId) => {
+      await api.deleteFeedLog(chickenId, logId);
+      setFeedLogsByChicken(prev => ({
+        ...prev,
+        [chickenId]: (prev[chickenId] || []).filter(l => l.id !== logId),
+      }));
+      await refreshChickens();
+      return true;
     },
-    // Tag management API
-    getAllTags: () => storage.getAllTags(),
-    renameTag: (oldTag, newTag) => {
-      const result = storage.renameTag(oldTag, newTag);
-      // Reload chickens to reflect tag mutations
-      setChickens(storage.getChickens());
-      return result;
+    // Tag management via API updates
+    getAllTags: async () => api.getAllTags(),
+    renameTag: async (oldTag, newTag) => {
+      const tasks = chickens
+        .filter(c => Array.isArray(c.tags) && c.tags.includes(oldTag))
+        .map(async (c) => {
+          const set = new Set(c.tags);
+          set.delete(oldTag);
+          set.add(newTag);
+          await api.updateChicken(c.id, { tags: Array.from(set) });
+        });
+      await Promise.all(tasks);
+      const rows = await api.listChickens();
+      setChickens(rows);
+      return api.getAllTags();
     },
-    deleteTag: (tag) => {
-      const result = storage.deleteTag(tag);
-      setChickens(storage.getChickens());
-      return result;
+    deleteTag: async (tag) => {
+      const tasks = chickens
+        .filter(c => Array.isArray(c.tags) && c.tags.includes(tag))
+        .map(c => api.updateChicken(c.id, { tags: c.tags.filter(t => t !== tag) }));
+      await Promise.all(tasks);
+      const rows = await api.listChickens();
+      setChickens(rows);
+      return api.getAllTags();
     },
-    mergeTags: (tags, newTag) => {
-      const result = storage.mergeTags(tags, newTag);
-      setChickens(storage.getChickens());
-      return result;
-    }
+    mergeTags: async (tags, newTag) => {
+      const list = (Array.isArray(tags) ? tags : []).map(t => String(t).trim()).filter(Boolean);
+      const tasks = chickens
+        .filter(c => Array.isArray(c.tags) && c.tags.some(t => list.includes(t)))
+        .map(async (c) => {
+          const set = new Set(c.tags);
+          list.forEach(t => set.delete(t));
+          set.add(newTag);
+          await api.updateChicken(c.id, { tags: Array.from(set) });
+        });
+      await Promise.all(tasks);
+      const rows = await api.listChickens();
+      setChickens(rows);
+      return api.getAllTags();
+    },
   };
 
   return (

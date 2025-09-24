@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { useChicken } from '../contexts/ChickenContext';
 import { format } from 'date-fns';
-import { Edit, Trash2, Plus, NotebookPen, Filter } from 'lucide-react';
+import { Edit, Trash2, Plus, NotebookPen, Filter, X } from 'lucide-react';
 
 const ChickenList = ({ onEdit, onAdd, onOpenFeedLogs, onOpenTagManager }) => {
   const { chickens, deleteChicken, loading } = useChicken();
@@ -158,8 +158,18 @@ const ChickenList = ({ onEdit, onAdd, onOpenFeedLogs, onOpenTagManager }) => {
           <div className="tag-filter">
             <div className="selected-tags">
               {selectedTags.map(tag => (
-                <span key={tag} className="tag-chip selected" onClick={() => removeSelectedTag(tag)} title="Remove tag">
-                  {tag} ×
+                <span
+                  key={tag}
+                  className="tag-chip selected"
+                  title={`Remove tag: ${tag}`}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => removeSelectedTag(tag)}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); removeSelectedTag(tag); } }}
+                >
+                  <Filter size={12} className="tag-icon" aria-hidden="true" />
+                  {tag}
+                  <X size={12} className="remove-icon" aria-hidden="true" />
                 </span>
               ))}
             </div>
@@ -179,8 +189,24 @@ const ChickenList = ({ onEdit, onAdd, onOpenFeedLogs, onOpenTagManager }) => {
               />
               {suggestions.length > 0 && (
                 <div className="suggestions">
-                  {suggestions.map(s => (
-                    <div key={s} className="suggestion-item" onClick={() => addSelectedTag(s)}>{s}</div>
+                  {suggestions.map((s) => (
+                    <span
+                      key={s}
+                      className="tag-chip"
+                      title={`Add filter: ${s}`}
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => addSelectedTag(s)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          addSelectedTag(s);
+                        }
+                      }}
+                    >
+                      <Filter size={12} className="tag-icon" aria-hidden="true" />
+                      {s}
+                    </span>
                   ))}
                 </div>
               )}

@@ -8,11 +8,20 @@ const TagManagerModal = ({ onClose }) => {
   const [renameFrom, setRenameFrom] = useState('');
   const [renameTo, setRenameTo] = useState('');
   const [mergeTo, setMergeTo] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const refresh = () => setTagsMap(getAllTags());
+  const refresh = async () => {
+    setLoading(true);
+    try {
+      const map = await getAllTags();
+      setTagsMap(map || {});
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    setTagsMap(getAllTags());
+    refresh();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -25,26 +34,47 @@ const TagManagerModal = ({ onClose }) => {
   const handleRename = (e) => {
     e.preventDefault();
     if (!renameFrom || !renameTo) return;
-    renameTag(renameFrom, renameTo);
-    setRenameFrom('');
-    setRenameTo('');
-    refresh();
+    (async () => {
+      setLoading(true);
+      try {
+        await renameTag(renameFrom, renameTo);
+        setRenameFrom('');
+        setRenameTo('');
+        await refresh();
+      } finally {
+        setLoading(false);
+      }
+    })();
   };
 
   const handleDelete = (tag) => {
     if (!tag) return;
-    deleteTag(tag);
-    setSelected((prev) => prev.filter((t) => t !== tag));
-    refresh();
+    (async () => {
+      setLoading(true);
+      try {
+        await deleteTag(tag);
+        setSelected((prev) => prev.filter((t) => t !== tag));
+        await refresh();
+      } finally {
+        setLoading(false);
+      }
+    })();
   };
 
   const handleMerge = (e) => {
     e.preventDefault();
     if (selected.length < 2 || !mergeTo.trim()) return;
-    mergeTags(selected, mergeTo.trim());
-    setSelected([]);
-    setMergeTo('');
-    refresh();
+    (async () => {
+      setLoading(true);
+      try {
+        await mergeTags(selected, mergeTo.trim());
+        setSelected([]);
+        setMergeTo('');
+        await refresh();
+      } finally {
+        setLoading(false);
+      }
+    })();
   };
 
   return (
@@ -58,23 +88,30 @@ const TagManagerModal = ({ onClose }) => {
               <h3 style={{ fontSize: '1.1rem' }}>All Tags</h3>
             </div>
             <div className="card-content">
-              <div className="tag-list">
-                {tags.length === 0 ? (
-                  <span style={{ color: '#4a5568' }}>No tags yet.</span>
-                ) : (
-                  tags.map(({ name, count }) => (
-                    <span
-                      key={name}
-                      className={`tag-chip${selected.includes(name) ? ' selected' : ''}`}
-                      title={`${count} batch${count === 1 ? '' : 'es'}`}
-                      onClick={() => toggle(name)}
-                    >
-                      {name} <span style={{ opacity: 0.7 }}>({count})</span>
-                      <button className="delete-button" style={{ marginLeft: 8 }} onClick={(e) => { e.stopPropagation(); handleDelete(name); }}>Delete</button>
-                    </span>
-                  ))
-                )}
-              </div>
+              {loading ? (
+                <span style={{ color: '#4a5568' }}>Loading tags…</span>
+              ) : (
+                <div className="tag-list">
+                  {tags.length === 0 ? (
+                    <span style={{ color: '#4a5568' }}>No tags yet.</span>
+                  ) : (
+                    tags.map(({ name, count }) => (
+                      <span
+                        key={name}
+                        className={`tag-chip${selected.includes(name) ? ' selected' : ''}`}
+                        title={`${count} batch${count === 1 ? '' : 'es'}`}
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => toggle(name)}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(name); } }}
+                      >
+                        {name} <span style={{ opacity: 0.7 }}>({count})</span>
+                        <button className="delete-button" style={{ marginLeft: 8 }} onClick={(e) => { e.stopPropagation(); handleDelete(name); }}>Delete</button>
+                      </span>
+                    ))
+                  )}
+                </div>
+              )}
             </div>
           </div>
 

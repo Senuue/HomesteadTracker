@@ -1,0 +1,39 @@
+version: '3.9'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: homestead_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: homestead_tracker
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./db/local_postgres.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: homestead_api
+    environment:
+      # Connect API to the dockerized Postgres service
+      DATABASE_URL: postgres://postgres:postgres@db:5432/homestead_tracker
+      API_PORT: 5174
+      VITE_APP_URL: http://localhost:5173
+    ports:
+      - "5174:5174"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:
