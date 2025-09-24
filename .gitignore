@@ -22,3 +22,34 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Test coverage & reports
+coverage/
+.nyc_output/
+junit.xml
+
+# Tool caches
+.eslintcache
+.cache/
+.parcel-cache/
+.turbo/
+.vite/
+
+# Environment files (do not commit secrets)
+.env
+.env.local
+.env.*.local
+.env.development.local
+.env.test
+.env.production.local
+
+# Hosting/provider metadata
+.vercel/
+.netlify/
+
+# OS-specific junk (Windows/macOS)
+Thumbs.db
+desktop.ini
+
+# NPM packaging artifacts
+*.tgz
