@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { useChicken } from '../contexts/ChickenContext';
 import { format } from 'date-fns';
-import { Edit, Trash2, Plus, NotebookPen } from 'lucide-react';
+import { Edit, Trash2, Plus, NotebookPen, Filter } from 'lucide-react';
 
 const ChickenList = ({ onEdit, onAdd, onOpenFeedLogs, onOpenTagManager }) => {
   const { chickens, deleteChicken, loading } = useChicken();
@@ -249,8 +249,12 @@ const ChickenList = ({ onEdit, onAdd, onOpenFeedLogs, onOpenTagManager }) => {
                         key={tag}
                         className={`tag-chip${selectedTags.includes(tag) ? ' selected' : ''}`}
                         onClick={() => toggleSelectedTag(tag)}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleSelectedTag(tag); } }}
                         title={selectedTags.includes(tag) ? 'Remove tag from filter' : 'Filter by this tag'}
                       >
+                        <Filter size={12} className="tag-icon" aria-hidden="true" />
                         {tag}
                       </span>
                     ))}

@@ -1,7 +1,33 @@
+/* Global box sizing to avoid width overflows due to padding/borders */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+/* Root sizing to ensure full-viewport usage */
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  margin: 0; /* remove default body margin that can create gaps */
+  overflow-x: hidden; /* ensure nothing creates horizontal scrolling */
+}
+
 /* App Layout */
 .app {
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden; /* clip any stray horizontal overflow */
+}
+
+/* Ensure main structural sections span the full width */
+.app-header,
+.app-nav,
+.app-main,
+.chicken-dashboard,
+.chicken-list {
+  width: 100%;
 }
 
 .app-header {
@@ -10,6 +36,7 @@
   padding: 1.5rem 2rem;
   text-align: center;
   box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+  overflow-x: hidden;
 }
 
 .app-header h1 {
@@ -33,6 +60,7 @@
   padding: 1.5rem;
   background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(10px);
+  overflow-x: hidden;
 }
 
 .nav-button {
@@ -60,9 +88,14 @@
 
 /* Main Content */
 .app-main {
-  padding: 2rem;
-  max-width: 100%;
-  margin: 0 auto;
+  padding-inline: clamp(12px, 2vw, 32px);
+  padding-block: 2rem;
+  width: 100%;
+  margin: 0; /* do not center; use full width */
+  flex: 1; /* occupy remaining viewport height */
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden; /* prevent child overflow from causing horizontal scroll */
 }
 
 /* Loading States */
@@ -76,6 +109,9 @@
 /* Dashboard Styles */
 .chicken-dashboard {
   color: white;
+  display: flex;
+  flex-direction: column;
+  flex: 1; /* fill vertical space in main */
 }
 
 .chicken-dashboard h2 {
@@ -138,8 +174,11 @@
 
 .charts-container {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 2rem;
+  flex: 1; /* take remaining space under summary cards */
+  align-content: start;
+  overflow-x: hidden;
 }
 
 .chart-card {
@@ -147,6 +186,7 @@
   padding: 1.5rem;
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  min-width: 0; /* allow charts to shrink and fill grid track */
 }
 
 .chart-card h3 {
@@ -159,6 +199,9 @@
 /* Chicken List Styles */
 .chicken-list {
   color: white;
+  display: flex;
+  flex-direction: column;
+  flex: 1; /* fill vertical space in main */
 }
 
 .list-header {
@@ -205,8 +248,10 @@
 
 .chicken-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 1.5rem;
+  flex: 1;
+  overflow-x: hidden;
 }
 
 .chicken-card {
@@ -216,6 +261,7 @@
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   transition: transform 0.3s ease;
   color: #2d3748;
+  min-width: 0; /* allow shrink within grid to avoid overflow */
 }
 
 .chicken-card:hover {
@@ -289,6 +335,14 @@
   padding: 0.25rem 0.5rem;
   border-radius: 9999px;
   font-size: 0.8rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  cursor: pointer;
+}
+
+.tag-chip .tag-icon {
+  opacity: 0.8;
 }
 
 .info-row {
@@ -533,6 +587,19 @@
   flex-wrap: wrap;
   gap: 0.75rem;
   align-items: center;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* Make filter controls wrap gracefully without pushing width */
+.filters-bar > * {
+  flex: 0 1 auto;
+  max-width: 100%;
+}
+
+.filters-bar .tag-autocomplete {
+  flex: 1 1 260px;
+  min-width: 220px;
 }
 
 .filters-bar input[type="text"] {
@@ -596,6 +663,18 @@
   }
   .summary-cards {
     grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (min-width: 1920px) {
+  .charts-container {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .summary-cards {
+    grid-template-columns: repeat(5, 1fr);
+  }
+  .app-main {
+    padding-inline: clamp(6px, 1vw, 24px);
   }
 }
 
