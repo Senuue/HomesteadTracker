@@ -11,7 +11,19 @@
     "test": "vitest",
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "test:report": "vitest run --coverage && node scripts/coverage-report.cjs"
+    "test:report": "vitest run --coverage && node scripts/coverage-report.cjs",
+    "test:unit": "vitest src/__tests__/*storage*.test.*",
+    "test:unit:run": "vitest run src/__tests__/*storage*.test.*",
+    "test:unit:coverage": "vitest run --coverage src/__tests__/*storage*.test.*",
+    "test:unit:report": "vitest run --coverage src/__tests__/*storage*.test.* && node scripts/coverage-report.cjs",
+    "test:int": "vitest src/__tests__/*context*.test.*",
+    "test:int:run": "vitest run src/__tests__/*context*.test.*",
+    "test:int:coverage": "vitest run --coverage src/__tests__/*context*.test.*",
+    "test:int:report": "vitest run --coverage src/__tests__/*context*.test.* && node scripts/coverage-report.cjs",
+    "test:component": "vitest src/__tests__/*Chicken*.test.*",
+    "test:component:run": "vitest run src/__tests__/*Chicken*.test.*",
+    "test:component:coverage": "vitest run --coverage src/__tests__/*Chicken*.test.*",
+    "test:component:report": "vitest run --coverage src/__tests__/*Chicken*.test.* && node scripts/coverage-report.cjs"
   },
   "dependencies": {
     "date-fns": "2.30.0",

@@ -1,16 +1,98 @@
-# React + Vite
+# Homestead Tracker (Chickens)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Homestead expense tracker focused on chicken batches. Built with Vite + React, using `localStorage` for persistence. Features per-batch feed logs, tags, status, dashboard visualizations, and robust testing with Vitest + React Testing Library.
 
-Currently, two official plugins are available:
+![CI](https://img.shields.io/github/actions/workflow/status/Senuue/HomesteadTracker/ci.yml?branch=main)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Project Structure
 
-## React Compiler
+- `src/utils/storage.js` – `localStorage` data API (batches, feed logs, tags)
+- `src/contexts/ChickenContext.jsx` – React context for app state
+- `src/components/` – UI components (List, Form, Dashboard, Modals)
+- `src/__tests__/` – Unit, integration, and component tests
+- `.github/workflows/ci.yml` – GitHub Actions for tests + coverage
 
-The React Compiler is not enabled on this template. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Requirements
 
-## Expanding the ESLint configuration
+- Node.js 16.x
+- npm 8.x
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Setup
+
+```bash
+npm install
+```
+
+If you forked/cloned without dependencies, the command above installs everything. The project already includes a `.gitignore` for common Node/Vite artifacts.
+
+## Run the App
+
+```bash
+# start dev server (http://localhost:5173 by default)
+npm run dev
+
+# build for production
+npm run build
+
+# preview the production build locally
+npm run preview
+```
+
+## Testing
+
+We use Vitest + jsdom and React Testing Library. Coverage thresholds are set to 80% in `vitest.config.js`.
+
+Global commands:
+
+```bash
+# watch all tests
+npm run test
+
+# run all tests once
+npm run test:run
+
+# run all tests with coverage (text + HTML in coverage/)
+npm run test:coverage
+
+# run all tests with coverage and color-coded per-file report
+npm run test:report
+```
+
+By test type:
+
+```bash
+# Unit tests (storage)
+npm run test:unit           # watch
+npm run test:unit:run       # one-shot
+npm run test:unit:coverage  # with coverage
+npm run test:unit:report    # coverage + colored per-file report
+
+# Integration tests (context)
+npm run test:int
+npm run test:int:run
+npm run test:int:coverage
+npm run test:int:report
+
+# Component tests (Chicken* components)
+npm run test:component
+npm run test:component:run
+npm run test:component:coverage
+npm run test:component:report
+```
+
+Coverage report colors (custom script):
+
+- Green – Passed files ≥ 80%
+- Red – Files between 70–<80%
+- Yellow – Files < 70%
+
+The script that prints colors to the console is at `scripts/coverage-report.cjs`. HTML coverage can be found in the `coverage/` folder after running any coverage command.
+
+## Continuous Integration
+
+GitHub Actions workflow is defined in `.github/workflows/ci.yml`. It runs all test groups, enforces coverage, prints per-file color-coded coverage, and uploads HTML coverage as artifacts.
+
+## Notes
+
+- The app is responsive: full-width on large screens, condensed on mobile.
+- Data is stored in the browser; you can export/import later if needed. TODO: Use a proper database.
