@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "skipLibCheck": true,
+    "jsx": "react-jsx",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    },
+    "allowJs": true,
+    "checkJs": false,
+    "resolveJsonModule": true,
+    "noEmit": true,
+    "types": [
+      "vitest/globals"
+    ]
+  },
+  "include": [
+    "src",
+    "server",
+    "vite.config.*",
+    "vitest.config.*"
+  ]
+}

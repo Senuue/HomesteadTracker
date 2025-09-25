@@ -1,18 +1,18 @@
 import React, { useState } from 'react';
-import { ChickenProvider } from './contexts/ChickenContext';
-import ChickenDashboard from './components/ChickenDashboard';
-import ChickenList from './components/ChickenList';
-import ChickenForm from './components/ChickenForm';
-import FeedLogModal from './components/FeedLogModal';
-import TagManagerModal from './components/TagManagerModal';
+import { ChickenProvider } from '@/contexts/ChickenContext';
+import ChickenDashboard from '@/components/ChickenDashboard';
+import ChickenList from '@/components/ChickenList';
+import ChickenForm from '@/components/ChickenForm';
+import FeedLogModal from '@/components/FeedLogModal';
+import TagManagerModal from '@/components/TagManagerModal';
 import './App.css';
 
 function App() {
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'list'>('dashboard');
   const [showForm, setShowForm] = useState(false);
-  const [editingChickenId, setEditingChickenId] = useState(null);
+  const [editingChickenId, setEditingChickenId] = useState<string | null>(null);
   const [showFeedLogs, setShowFeedLogs] = useState(false);
-  const [feedLogsChickenId, setFeedLogsChickenId] = useState(null);
+  const [feedLogsChickenId, setFeedLogsChickenId] = useState<string | null>(null);
   const [showTagManager, setShowTagManager] = useState(false);
 
   const handleAddChicken = () => {
@@ -20,7 +20,7 @@ function App() {
     setShowForm(true);
   };
 
-  const handleEditChicken = (chickenId) => {
+  const handleEditChicken = (chickenId: string) => {
     setEditingChickenId(chickenId);
     setShowForm(true);
   };
@@ -33,9 +33,8 @@ function App() {
   const handleFormSuccess = () => {
     setShowForm(false);
     setEditingChickenId(null);
-    // Optionally switch to list view after adding/editing
     if (activeTab === 'dashboard') {
-      // Stay on dashboard to see updated stats
+      // stay on dashboard
     }
   };
 
@@ -48,16 +47,10 @@ function App() {
         </header>
 
         <nav className="app-nav">
-          <button 
-            className={`nav-button ${activeTab === 'dashboard' ? 'active' : ''}`}
-            onClick={() => setActiveTab('dashboard')}
-          >
+          <button className={`nav-button ${activeTab === 'dashboard' ? 'active' : ''}`} onClick={() => setActiveTab('dashboard')}>
             Dashboard
           </button>
-          <button 
-            className={`nav-button ${activeTab === 'list' ? 'active' : ''}`}
-            onClick={() => setActiveTab('list')}
-          >
+          <button className={`nav-button ${activeTab === 'list' ? 'active' : ''}`} onClick={() => setActiveTab('list')}>
             Chicken Batches
           </button>
         </nav>
@@ -65,7 +58,7 @@ function App() {
         <main className="app-main">
           {activeTab === 'dashboard' && <ChickenDashboard />}
           {activeTab === 'list' && (
-            <ChickenList 
+            <ChickenList
               onEdit={handleEditChicken}
               onAdd={handleAddChicken}
               onOpenFeedLogs={(id) => {
@@ -78,11 +71,7 @@ function App() {
         </main>
 
         {showForm && (
-          <ChickenForm
-            chickenId={editingChickenId}
-            onClose={handleCloseForm}
-            onSuccess={handleFormSuccess}
-          />
+          <ChickenForm chickenId={editingChickenId || undefined} onClose={handleCloseForm} onSuccess={handleFormSuccess} />
         )}
 
         {showFeedLogs && feedLogsChickenId && (
@@ -95,14 +84,10 @@ function App() {
           />
         )}
 
-        {showTagManager && (
-          <TagManagerModal
-            onClose={() => setShowTagManager(false)}
-          />
-        )}
+        {showTagManager && <TagManagerModal onClose={() => setShowTagManager(false)} />}
       </div>
     </ChickenProvider>
   );
 }
 
-export default App
+export default App;

@@ -1,10 +1,14 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { useChicken } from '../contexts/ChickenContext';
+import { useChicken } from '@/contexts/ChickenContext';
 
-const TagManagerModal = ({ onClose }) => {
+type Props = {
+  onClose: () => void;
+};
+
+const TagManagerModal: React.FC<Props> = ({ onClose }) => {
   const { getAllTags, renameTag, deleteTag, mergeTags } = useChicken();
-  const [tagsMap, setTagsMap] = useState({});
-  const [selected, setSelected] = useState([]);
+  const [tagsMap, setTagsMap] = useState<Record<string, number>>({});
+  const [selected, setSelected] = useState<string[]>([]);
   const [renameFrom, setRenameFrom] = useState('');
   const [renameTo, setRenameTo] = useState('');
   const [mergeTo, setMergeTo] = useState('');
@@ -27,11 +31,11 @@ const TagManagerModal = ({ onClose }) => {
 
   const tags = useMemo(() => Object.entries(tagsMap).map(([name, count]) => ({ name, count })), [tagsMap]);
 
-  const toggle = (tag) => {
+  const toggle = (tag: string) => {
     setSelected((prev) => (prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]));
   };
 
-  const handleRename = (e) => {
+  const handleRename: React.FormEventHandler<HTMLFormElement> = (e) => {
     e.preventDefault();
     if (!renameFrom || !renameTo) return;
     (async () => {
@@ -47,7 +51,7 @@ const TagManagerModal = ({ onClose }) => {
     })();
   };
 
-  const handleDelete = (tag) => {
+  const handleDelete = (tag: string) => {
     if (!tag) return;
     (async () => {
       setLoading(true);
@@ -61,7 +65,7 @@ const TagManagerModal = ({ onClose }) => {
     })();
   };
 
-  const handleMerge = (e) => {
+  const handleMerge: React.FormEventHandler<HTMLFormElement> = (e) => {
     e.preventDefault();
     if (selected.length < 2 || !mergeTo.trim()) return;
     (async () => {
@@ -103,10 +107,24 @@ const TagManagerModal = ({ onClose }) => {
                         role="button"
                         tabIndex={0}
                         onClick={() => toggle(name)}
-                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(name); } }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            toggle(name);
+                          }
+                        }}
                       >
                         {name} <span style={{ opacity: 0.7 }}>({count})</span>
-                        <button className="delete-button" style={{ marginLeft: 8 }} onClick={(e) => { e.stopPropagation(); handleDelete(name); }}>Delete</button>
+                        <button
+                          className="delete-button"
+                          style={{ marginLeft: 8 }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDelete(name);
+                          }}
+                        >
+                          Delete
+                        </button>
                       </span>
                     ))
                   )}
@@ -131,7 +149,9 @@ const TagManagerModal = ({ onClose }) => {
                 </div>
               </div>
               <div className="form-actions">
-                <button type="submit" className="submit-button">Rename</button>
+                <button type="submit" className="submit-button">
+                  Rename
+                </button>
               </div>
             </form>
           </div>
@@ -145,7 +165,9 @@ const TagManagerModal = ({ onClose }) => {
                 <label>Selected ({selected.length})</label>
                 <div className="selected-tags">
                   {selected.map((t) => (
-                    <span key={t} className="tag-chip selected" onClick={() => toggle(t)}>{t} ×</span>
+                    <span key={t} className="tag-chip selected" onClick={() => toggle(t)}>
+                      {t} ×
+                    </span>
                   ))}
                 </div>
               </div>
@@ -154,14 +176,18 @@ const TagManagerModal = ({ onClose }) => {
                 <input value={mergeTo} onChange={(e) => setMergeTo(e.target.value)} placeholder="Target tag" />
               </div>
               <div className="form-actions">
-                <button type="submit" className="submit-button" disabled={selected.length < 2 || !mergeTo.trim()}>Merge</button>
+                <button type="submit" className="submit-button" disabled={selected.length < 2 || !mergeTo.trim()}>
+                  Merge
+                </button>
               </div>
             </form>
           </div>
         </div>
 
         <div className="modal-actions" style={{ marginTop: '1rem' }}>
-          <button className="cancel-button" onClick={onClose}>Close</button>
+          <button className="cancel-button" onClick={onClose}>
+            Close
+          </button>
         </div>
       </div>
     </div>

@@ -8,7 +8,7 @@ import tagsRouter from './routes/tags.js';
 dotenv.config();
 
 const app = express();
-const PORT = process.env.API_PORT || 5174;
+const PORT = Number(process.env.API_PORT || 5174);
 const ORIGIN = process.env.VITE_APP_URL || 'http://localhost:5173';
 
 app.use(cors({ origin: ORIGIN }));

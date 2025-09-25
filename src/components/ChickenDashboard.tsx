@@ -1,17 +1,17 @@
 import React, { useMemo } from 'react';
-import { useChicken } from '../contexts/ChickenContext';
+import { useChicken } from '@/contexts/ChickenContext';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
 import { format } from 'date-fns';
+import type { Chicken, FeedLog } from '@/types';
 
-const ChickenDashboard = () => {
+const ChickenDashboard: React.FC = () => {
   const { chickens, loading } = useChicken();
 
   const dashboardData = useMemo(() => {
     if (!chickens.length) return null;
 
-    // Helper: compute feed totals from logs when present
-    const getFeedTotals = (chicken) => {
-      const logs = Array.isArray(chicken.feedLogs) ? chicken.feedLogs : [];
+    const getFeedTotals = (chicken: Chicken & { feedLogs?: FeedLog[] }) => {
+      const logs = Array.isArray((chicken as any).feedLogs) ? (chicken as any).feedLogs as FeedLog[] : [];
       if (logs.length === 0) {
         return {
           cost: Number(chicken.feedCost || 0),
@@ -28,7 +28,6 @@ const ChickenDashboard = () => {
       );
     };
 
-    // Calculate totals
     const totalInitialChickens = chickens.reduce((sum, chicken) => sum + (chicken.initialCount || 0), 0);
     const totalCurrentChickens = chickens.reduce((sum, chicken) => sum + (chicken.currentCount || chicken.initialCount || 0), 0);
     const totalsAcross = chickens.map(getFeedTotals);
@@ -37,9 +36,8 @@ const ChickenDashboard = () => {
     const totalMortality = totalInitialChickens - totalCurrentChickens;
     const mortalityRate = totalInitialChickens > 0 ? (totalMortality / totalInitialChickens) * 100 : 0;
 
-    // Prepare data for charts
-    const batchData = chickens.map(chicken => {
-      const { cost, usage } = getFeedTotals(chicken);
+    const batchData = chickens.map((chicken) => {
+      const { cost, usage } = getFeedTotals(chicken as any);
       return {
         name: chicken.batchName,
         initial: chicken.initialCount || 0,
@@ -47,14 +45,13 @@ const ChickenDashboard = () => {
         mortality: (chicken.initialCount || 0) - (chicken.currentCount || chicken.initialCount || 0),
         feedCost: cost,
         feedUsage: usage,
-        costPerChicken: chicken.initialCount > 0 ? cost / chicken.initialCount : 0
+        costPerChicken: chicken.initialCount > 0 ? cost / chicken.initialCount : 0,
       };
     });
 
-    // Feed cost over time (aggregate per month across logs; fallback to delivery date + aggregate when no logs)
-    const monthlyMap = new Map(); // key: 'YYYY-MM', value: total cost
+    const monthlyMap = new Map<string, number>();
     chickens.forEach((chicken) => {
-      const logs = Array.isArray(chicken.feedLogs) ? chicken.feedLogs : [];
+      const logs = Array.isArray((chicken as any).feedLogs) ? ((chicken as any).feedLogs as FeedLog[]) : [];
       if (logs.length > 0) {
         logs.forEach((l) => {
           const d = l.date || chicken.chickDeliveryDate || new Date().toISOString();
@@ -68,15 +65,14 @@ const ChickenDashboard = () => {
     });
     const feedCostData = Array.from(monthlyMap.entries())
       .map(([ym, cost]) => ({ date: format(new Date(ym + '-01'), 'MMM yyyy'), cost }))
-      .sort((a, b) => new Date(a.date) - new Date(b.date));
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
-    // Status distribution (explicit status when present)
-    const activeChickens = chickens.filter(chicken => (chicken.status || (chicken.cullDate ? 'Culled' : 'Active')) === 'Active').length;
-    const culledChickens = chickens.filter(chicken => (chicken.status || (chicken.cullDate ? 'Culled' : 'Active')) === 'Culled').length;
-    
+    const activeChickens = chickens.filter((chicken) => (chicken.status || (chicken.cullDate ? 'Culled' : 'Active')) === 'Active').length;
+    const culledChickens = chickens.filter((chicken) => (chicken.status || (chicken.cullDate ? 'Culled' : 'Active')) === 'Culled').length;
+
     const statusData = [
       { name: 'Active Batches', value: activeChickens, color: '#10B981' },
-      { name: 'Culled Batches', value: culledChickens, color: '#EF4444' }
+      { name: 'Culled Batches', value: culledChickens, color: '#EF4444' },
     ];
 
     return {
@@ -88,11 +84,11 @@ const ChickenDashboard = () => {
         totalMortality,
         mortalityRate,
         activeBatches: activeChickens,
-        totalBatches: chickens.length
+        totalBatches: chickens.length,
       },
       batchData,
       feedCostData,
-      statusData
+      statusData,
     };
   }, [chickens]);
 
@@ -114,27 +110,26 @@ const ChickenDashboard = () => {
   return (
     <div className="chicken-dashboard">
       <h2>Chicken Tracking Dashboard</h2>
-      
-      {/* Summary Cards */}
+
       <div className="summary-cards">
         <div className="summary-card">
           <h3>Total Chickens</h3>
           <div className="card-value">{totals.totalCurrentChickens}</div>
           <div className="card-subtitle">of {totals.totalInitialChickens} initial</div>
         </div>
-        
+
         <div className="summary-card">
           <h3>Mortality Rate</h3>
           <div className="card-value">{totals.mortalityRate.toFixed(1)}%</div>
           <div className="card-subtitle">{totals.totalMortality} chickens lost</div>
         </div>
-        
+
         <div className="summary-card">
           <h3>Total Feed Cost</h3>
           <div className="card-value">${totals.totalFeedCost.toFixed(2)}</div>
           <div className="card-subtitle">{totals.totalFeedUsage.toFixed(1)} lbs used</div>
         </div>
-        
+
         <div className="summary-card">
           <h3>Active Batches</h3>
           <div className="card-value">{totals.activeBatches}</div>
@@ -142,9 +137,7 @@ const ChickenDashboard = () => {
         </div>
       </div>
 
-      {/* Charts */}
       <div className="charts-container">
-        {/* Chicken Count by Batch */}
         <div className="chart-card">
           <h3>Chicken Count by Batch</h3>
           <ResponsiveContainer width="100%" height={300}>
@@ -159,7 +152,6 @@ const ChickenDashboard = () => {
           </ResponsiveContainer>
         </div>
 
-        {/* Feed Cost by Batch */}
         <div className="chart-card">
           <h3>Feed Cost by Batch</h3>
           <ResponsiveContainer width="100%" height={300}>
@@ -167,13 +159,12 @@ const ChickenDashboard = () => {
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" />
               <YAxis />
-              <Tooltip formatter={(value) => [`$${value.toFixed(2)}`, 'Feed Cost']} />
+              <Tooltip formatter={(value: number) => [`$${value.toFixed(2)}`, 'Feed Cost']} />
               <Bar dataKey="feedCost" fill="#F59E0B" />
             </BarChart>
           </ResponsiveContainer>
         </div>
 
-        {/* Feed Cost Over Time */}
         {feedCostData.length > 1 && (
           <div className="chart-card">
             <h3>Feed Cost Over Time</h3>
@@ -182,15 +173,14 @@ const ChickenDashboard = () => {
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="date" />
                 <YAxis />
-                <Tooltip formatter={(value) => [`$${value.toFixed(2)}`, 'Feed Cost']} />
+                <Tooltip formatter={(value: number) => [`$${value.toFixed(2)}`, 'Feed Cost']} />
                 <Line type="monotone" dataKey="cost" stroke="#8B5CF6" strokeWidth={2} />
               </LineChart>
             </ResponsiveContainer>
           </div>
         )}
 
-        {/* Batch Status Distribution */}
-        {statusData.some(item => item.value > 0) && (
+        {statusData.some((item) => item.value > 0) && (
           <div className="chart-card">
             <h3>Batch Status Distribution</h3>
             <ResponsiveContainer width="100%" height={300}>
@@ -215,7 +205,6 @@ const ChickenDashboard = () => {
           </div>
         )}
 
-        {/* Cost Per Chicken */}
         <div className="chart-card">
           <h3>Feed Cost Per Chicken</h3>
           <ResponsiveContainer width="100%" height={300}>
@@ -223,13 +212,12 @@ const ChickenDashboard = () => {
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" />
               <YAxis />
-              <Tooltip formatter={(value) => [`$${value.toFixed(2)}`, 'Cost Per Chicken']} />
+              <Tooltip formatter={(value: number) => [`$${value.toFixed(2)}`, 'Cost Per Chicken']} />
               <Bar dataKey="costPerChicken" fill="#EC4899" />
             </BarChart>
           </ResponsiveContainer>
         </div>
 
-        {/* Mortality by Batch */}
         <div className="chart-card">
           <h3>Mortality by Batch</h3>
           <ResponsiveContainer width="100%" height={300}>

@@ -2,9 +2,9 @@ import React from 'react';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { renderWithProvider } from '../../test-utils';
-import ChickenList from '../../components/ChickenList';
-import { api } from '../../services/apiClient';
+import { renderWithProvider } from '@/test-utils';
+import ChickenList from '@/components/ChickenList';
+import { api } from '@/services/apiClient';
 
 const noop = () => {};
 
@@ -35,11 +35,9 @@ describe('ChickenList filtering and tag chips', () => {
         createdAt: new Date().toISOString(),
       },
     ];
-    api.listChickens.mockResolvedValueOnce(rows);
+    (api as any).listChickens.mockResolvedValueOnce(rows);
 
-    renderWithProvider(
-      <ChickenList onEdit={noop} onAdd={noop} onOpenFeedLogs={noop} onOpenTagManager={noop} />
-    );
+    renderWithProvider(<ChickenList onEdit={noop} onAdd={noop} onOpenFeedLogs={noop} onOpenTagManager={noop} />);
 
     // Wait for the list and search input to appear
     await screen.findByText(/Spring Broilers/i);

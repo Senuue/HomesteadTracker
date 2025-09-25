@@ -1,36 +1,48 @@
 import React, { useMemo, useState } from 'react';
-import { useChicken } from '../contexts/ChickenContext';
+import { useChicken } from '@/contexts/ChickenContext';
 import { format } from 'date-fns';
 
-const emptyForm = {
+type Props = {
+  chickenId: string;
+  onClose: () => void;
+};
+
+type FormState = {
+  date: string;
+  pounds: string;
+  cost: string;
+  notes: string;
+};
+
+const emptyForm: FormState = {
   date: new Date().toISOString().slice(0, 10),
   pounds: '',
   cost: '',
-  notes: ''
+  notes: '',
 };
 
-const FeedLogModal = ({ chickenId, onClose }) => {
+const FeedLogModal: React.FC<Props> = ({ chickenId, onClose }) => {
   const { getChickenById, getFeedLogs, addFeedLog, updateFeedLog, deleteFeedLog } = useChicken();
   const chicken = useMemo(() => getChickenById(chickenId), [chickenId, getChickenById]);
-  const [form, setForm] = useState(emptyForm);
-  const [editingId, setEditingId] = useState(null);
+  const [form, setForm] = useState<FormState>(emptyForm);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [error, setError] = useState('');
 
-  const logs = getFeedLogs(chickenId).slice().sort((a, b) => new Date(b.date) - new Date(a.date));
+  const logs = getFeedLogs(chickenId).slice().sort((a, b) => new Date(b.date || '').getTime() - new Date(a.date || '').getTime());
 
-  const handleChange = (e) => {
+  const handleChange: React.ChangeEventHandler<HTMLInputElement> = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
     if (error) setError('');
   };
 
-  const startEdit = (log) => {
+  const startEdit = (log: any) => {
     setEditingId(log.id);
     setForm({
       date: log.date || new Date().toISOString().slice(0, 10),
       pounds: String(log.pounds ?? ''),
       cost: String(log.cost ?? ''),
-      notes: log.notes || ''
+      notes: log.notes || '',
     });
   };
 
@@ -49,7 +61,7 @@ const FeedLogModal = ({ chickenId, onClose }) => {
     return '';
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit: React.FormEventHandler<HTMLFormElement> = (e) => {
     e.preventDefault();
     const v = validate();
     if (v) {
@@ -61,7 +73,7 @@ const FeedLogModal = ({ chickenId, onClose }) => {
       date: form.date,
       pounds: form.pounds ? parseFloat(form.pounds) : 0,
       cost: form.cost ? parseFloat(form.cost) : 0,
-      notes: form.notes || ''
+      notes: form.notes || '',
     };
 
     if (editingId) {
@@ -73,7 +85,7 @@ const FeedLogModal = ({ chickenId, onClose }) => {
     resetForm();
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = (id: string) => {
     deleteFeedLog(chickenId, id);
     if (editingId === id) resetForm();
   };
@@ -104,13 +116,13 @@ const FeedLogModal = ({ chickenId, onClose }) => {
             </div>
             <div className="form-group">
               <label htmlFor="pounds">Pounds</label>
-              <input id="pounds" name="pounds" type="number" min="0" step="0.1" value={form.pounds} onChange={handleChange} />
+              <input id="pounds" name="pounds" type="number" min={0} step={0.1} value={form.pounds} onChange={handleChange} />
             </div>
           </div>
           <div className="form-row">
             <div className="form-group">
               <label htmlFor="cost">Cost ($)</label>
-              <input id="cost" name="cost" type="number" min="0" step="0.01" value={form.cost} onChange={handleChange} />
+              <input id="cost" name="cost" type="number" min={0} step={0.01} value={form.cost} onChange={handleChange} />
             </div>
             <div className="form-group">
               <label htmlFor="notes">Notes</label>
@@ -138,13 +150,17 @@ const FeedLogModal = ({ chickenId, onClose }) => {
           <p style={{ color: '#4a5568' }}>No feed entries yet. Add your first entry above.</p>
         ) : (
           <div className="chicken-grid" style={{ gridTemplateColumns: '1fr' }}>
-            {logs.map((log) => (
+            {logs.map((log: any) => (
               <div key={log.id} className="chicken-card">
                 <div className="card-header">
-                  <h3 style={{ fontSize: '1.1rem' }}>{format(new Date(log.date), 'MMM dd, yyyy')}</h3>
+                  <h3 style={{ fontSize: '1.1rem' }}>{format(new Date(log.date || ''), 'MMM dd, yyyy')}</h3>
                   <div className="card-actions">
-                    <button className="edit-button" onClick={() => startEdit(log)}>Edit</button>
-                    <button className="delete-button" onClick={() => handleDelete(log.id)}>Delete</button>
+                    <button className="edit-button" onClick={() => startEdit(log)}>
+                      Edit
+                    </button>
+                    <button className="delete-button" onClick={() => handleDelete(log.id)}>
+                      Delete
+                    </button>
                   </div>
                 </div>
                 <div className="card-content">
@@ -169,7 +185,9 @@ const FeedLogModal = ({ chickenId, onClose }) => {
         )}
 
         <div className="modal-actions" style={{ marginTop: '1rem' }}>
-          <button className="cancel-button" onClick={onClose}>Close</button>
+          <button className="cancel-button" onClick={onClose}>
+            Close
+          </button>
         </div>
       </div>
     </div>

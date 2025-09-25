@@ -2,9 +2,9 @@ import React from 'react';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import ChickenForm from '../../components/ChickenForm';
-import { renderWithProvider } from '../../test-utils';
-import { api } from '../../services/apiClient';
+import ChickenForm from '@/components/ChickenForm';
+import { renderWithProvider } from '@/test-utils';
+import { api } from '@/services/apiClient';
 
 describe('ChickenForm', () => {
   beforeEach(() => {
@@ -16,8 +16,8 @@ describe('ChickenForm', () => {
     const onSuccess = vi.fn();
 
     // Ensure provider initial load resolves
-    api.listChickens.mockResolvedValueOnce([]);
-    api.addChicken.mockResolvedValueOnce({ id: 'new-1', batchName: 'Form Batch', initialCount: 12, currentCount: 12 });
+    (api as any).listChickens.mockResolvedValueOnce([]);
+    (api as any).addChicken.mockResolvedValueOnce({ id: 'new-1', batchName: 'Form Batch', initialCount: 12, currentCount: 12 });
 
     renderWithProvider(<ChickenForm onClose={onClose} onSuccess={onSuccess} />);
 
@@ -42,8 +42,8 @@ describe('ChickenForm', () => {
   });
 
   it('handles numeric conversion for feed fields', async () => {
-    api.listChickens.mockResolvedValueOnce([]);
-    api.addChicken.mockResolvedValueOnce({ id: 'id-nums', batchName: 'Numbers', initialCount: 5, currentCount: 5, feedCost: 12.34, feedUsage: 7.8 });
+    (api as any).listChickens.mockResolvedValueOnce([]);
+    (api as any).addChicken.mockResolvedValueOnce({ id: 'id-nums', batchName: 'Numbers', initialCount: 5, currentCount: 5, feedCost: 12.34, feedUsage: 7.8 });
     renderWithProvider(<ChickenForm />);
 
     await userEvent.type(screen.getByLabelText(/Batch Name/i), 'Numbers');
@@ -54,7 +54,7 @@ describe('ChickenForm', () => {
 
     await userEvent.click(screen.getByRole('button', { name: /add batch/i }));
 
-    // re-open list to verify via storage would require routing; basic assertion: no validation errors remain
+    // basic assertion: no validation errors remain
     await waitFor(() => {
       expect(screen.queryByText(/cannot be negative/i)).not.toBeInTheDocument();
     });

@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "dist/server",
+    "rootDir": "server",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "target": "ES2020",
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "noEmit": false
+  },
+  "include": ["server/**/*"]
+}

@@ -1,9 +1,32 @@
-import React, { useState, useEffect } from 'react';
-import { useChicken } from '../contexts/ChickenContext';
+import React, { useEffect, useState } from 'react';
+import { useChicken } from '@/contexts/ChickenContext';
+import type { Chicken } from '@/types';
 
-const ChickenForm = ({ chickenId, onClose, onSuccess }) => {
+type ChickenFormProps = {
+  chickenId?: string;
+  onClose?: () => void;
+  onSuccess?: () => void;
+};
+
+type FormState = {
+  batchName: string;
+  status: Chicken['status'] | '';
+  tags: string; // comma separated in the UI
+  chickOrderDate: string;
+  chickDeliveryDate: string;
+  initialCount: string;
+  currentCount: string;
+  feedCost: string;
+  feedUsage: string;
+  cullDate: string;
+  notes: string;
+};
+
+type FormErrors = Partial<Record<keyof FormState | 'submit', string>>;
+
+const ChickenForm: React.FC<ChickenFormProps> = ({ chickenId, onClose, onSuccess }) => {
   const { addChicken, updateChicken, getChickenById } = useChicken();
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormState>({
     batchName: '',
     status: 'Active',
     tags: '',
@@ -14,9 +37,9 @@ const ChickenForm = ({ chickenId, onClose, onSuccess }) => {
     feedCost: '',
     feedUsage: '',
     cullDate: '',
-    notes: ''
+    notes: '',
   });
-  const [errors, setErrors] = useState({});
+  const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Load existing chicken data if editing
@@ -26,59 +49,49 @@ const ChickenForm = ({ chickenId, onClose, onSuccess }) => {
       if (chicken) {
         setFormData({
           batchName: chicken.batchName || '',
-          status: chicken.status || (chicken.cullDate ? 'Culled' : 'Active'),
-          tags: Array.isArray(chicken.tags) ? chicken.tags.join(', ') : (chicken.tags || ''),
+          status: (chicken.status as Chicken['status']) || (chicken.cullDate ? 'Culled' : 'Active'),
+          tags: Array.isArray(chicken.tags) ? chicken.tags.join(', ') : (chicken.tags as unknown as string) || '',
           chickOrderDate: chicken.chickOrderDate || '',
           chickDeliveryDate: chicken.chickDeliveryDate || '',
-          initialCount: chicken.initialCount || '',
-          currentCount: chicken.currentCount || '',
-          feedCost: chicken.feedCost || '',
-          feedUsage: chicken.feedUsage || '',
+          initialCount: String(chicken.initialCount || ''),
+          currentCount: String(chicken.currentCount || ''),
+          feedCost: String(chicken.feedCost || ''),
+          feedUsage: String(chicken.feedUsage || ''),
           cullDate: chicken.cullDate || '',
-          notes: chicken.notes || ''
+          notes: (chicken.notes as string) || '',
         });
       }
     }
   }, [chickenId, getChickenById]);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
+  const handleChange: React.ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement> = (e) => {
+    const { name, value } = e.target as HTMLInputElement;
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
-    
-    // Clear error when user starts typing
-    if (errors[name]) {
-      setErrors(prev => ({
+
+    if (errors[name as keyof FormState]) {
+      setErrors((prev) => ({
         ...prev,
-        [name]: ''
+        [name]: '',
       }));
     }
   };
 
-  const validateForm = () => {
-    const newErrors = {};
+  const validateForm = (): boolean => {
+    const newErrors: FormErrors = {};
 
-    if (!formData.batchName.trim()) {
-      newErrors.batchName = 'Batch name is required';
-    }
+    if (!formData.batchName.trim()) newErrors.batchName = 'Batch name is required';
+    const initial = Number(formData.initialCount);
+    const current = formData.currentCount ? Number(formData.currentCount) : undefined;
+    const feedCost = formData.feedCost ? Number(formData.feedCost) : undefined;
+    const feedUsage = formData.feedUsage ? Number(formData.feedUsage) : undefined;
 
-    if (!formData.initialCount || formData.initialCount <= 0) {
-      newErrors.initialCount = 'Initial count must be greater than 0';
-    }
-
-    if (formData.currentCount && formData.currentCount < 0) {
-      newErrors.currentCount = 'Current count cannot be negative';
-    }
-
-    if (formData.feedCost && formData.feedCost < 0) {
-      newErrors.feedCost = 'Feed cost cannot be negative';
-    }
-
-    if (formData.feedUsage && formData.feedUsage < 0) {
-      newErrors.feedUsage = 'Feed usage cannot be negative';
-    }
+    if (!initial || initial <= 0) newErrors.initialCount = 'Initial count must be greater than 0';
+    if (current !== undefined && current < 0) newErrors.currentCount = 'Current count cannot be negative';
+    if (feedCost !== undefined && feedCost < 0) newErrors.feedCost = 'Feed cost cannot be negative';
+    if (feedUsage !== undefined && feedUsage < 0) newErrors.feedUsage = 'Feed usage cannot be negative';
 
     // Date validation
     if (formData.chickOrderDate && formData.chickDeliveryDate) {
@@ -86,7 +99,6 @@ const ChickenForm = ({ chickenId, onClose, onSuccess }) => {
         newErrors.chickDeliveryDate = 'Delivery date cannot be before order date';
       }
     }
-
     if (formData.cullDate && formData.chickDeliveryDate) {
       if (new Date(formData.cullDate) < new Date(formData.chickDeliveryDate)) {
         newErrors.cullDate = 'Cull date cannot be before delivery date';
@@ -97,26 +109,20 @@ const ChickenForm = ({ chickenId, onClose, onSuccess }) => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit: React.FormEventHandler<HTMLFormElement> = async (e) => {
     e.preventDefault();
-    
-    if (!validateForm()) {
-      return;
-    }
+    if (!validateForm()) return;
 
     setIsSubmitting(true);
-
     try {
-      const chickenData = {
+      const chickenData: Partial<Chicken> = {
         ...formData,
-        tags: formData.tags
-          ? formData.tags.split(',').map(t => t.trim()).filter(Boolean)
-          : [],
+        tags: formData.tags ? formData.tags.split(',').map((t) => t.trim()).filter(Boolean) : [],
         initialCount: parseInt(formData.initialCount),
         currentCount: formData.currentCount ? parseInt(formData.currentCount) : parseInt(formData.initialCount),
         feedCost: formData.feedCost ? parseFloat(formData.feedCost) : 0,
-        feedUsage: formData.feedUsage ? parseFloat(formData.feedUsage) : 0
-      };
+        feedUsage: formData.feedUsage ? parseFloat(formData.feedUsage) : 0,
+      } as unknown as Partial<Chicken>;
 
       if (chickenId) {
         await updateChicken(chickenId, chickenData);
@@ -139,12 +145,7 @@ const ChickenForm = ({ chickenId, onClose, onSuccess }) => {
       <div className="chicken-form-modal">
         <div className="form-header">
           <h2>{chickenId ? 'Edit Chicken Batch' : 'Add New Chicken Batch'}</h2>
-          <button 
-            type="button" 
-            className="close-button"
-            onClick={onClose}
-            disabled={isSubmitting}
-          >
+          <button type="button" className="close-button" onClick={onClose} disabled={isSubmitting}>
             ×
           </button>
         </div>
@@ -152,12 +153,7 @@ const ChickenForm = ({ chickenId, onClose, onSuccess }) => {
         <form onSubmit={handleSubmit} className="chicken-form">
           <div className="form-group">
             <label htmlFor="status">Status</label>
-            <select
-              id="status"
-              name="status"
-              value={formData.status}
-              onChange={handleChange}
-            >
+            <select id="status" name="status" value={formData.status} onChange={handleChange}>
               <option value="Active">Active</option>
               <option value="Culled">Culled</option>
             </select>
@@ -192,13 +188,7 @@ const ChickenForm = ({ chickenId, onClose, onSuccess }) => {
           <div className="form-row">
             <div className="form-group">
               <label htmlFor="chickOrderDate">Chick Order Date</label>
-              <input
-                type="date"
-                id="chickOrderDate"
-                name="chickOrderDate"
-                value={formData.chickOrderDate}
-                onChange={handleChange}
-              />
+              <input type="date" id="chickOrderDate" name="chickOrderDate" value={formData.chickOrderDate} onChange={handleChange} />
             </div>
 
             <div className="form-group">
@@ -283,46 +273,23 @@ const ChickenForm = ({ chickenId, onClose, onSuccess }) => {
 
           <div className="form-group">
             <label htmlFor="cullDate">Cull Date</label>
-            <input
-              type="date"
-              id="cullDate"
-              name="cullDate"
-              value={formData.cullDate}
-              onChange={handleChange}
-              className={errors.cullDate ? 'error' : ''}
-            />
+            <input type="date" id="cullDate" name="cullDate" value={formData.cullDate} onChange={handleChange} className={errors.cullDate ? 'error' : ''} />
             {errors.cullDate && <span className="error-message">{errors.cullDate}</span>}
           </div>
 
           <div className="form-group">
             <label htmlFor="notes">Notes</label>
-            <textarea
-              id="notes"
-              name="notes"
-              value={formData.notes}
-              onChange={handleChange}
-              rows="3"
-              placeholder="Additional notes about this batch..."
-            />
+            <textarea id="notes" name="notes" value={formData.notes} onChange={handleChange} rows={3} placeholder="Additional notes about this batch..." />
           </div>
 
           {errors.submit && <div className="error-message">{errors.submit}</div>}
 
           <div className="form-actions">
-            <button 
-              type="button" 
-              className="cancel-button"
-              onClick={onClose}
-              disabled={isSubmitting}
-            >
+            <button type="button" className="cancel-button" onClick={onClose} disabled={isSubmitting}>
               Cancel
             </button>
-            <button 
-              type="submit" 
-              className="submit-button"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? 'Saving...' : (chickenId ? 'Update Batch' : 'Add Batch')}
+            <button type="submit" className="submit-button" disabled={isSubmitting}>
+              {isSubmitting ? 'Saving...' : chickenId ? 'Update Batch' : 'Add Batch'}
             </button>
           </div>
         </form>
