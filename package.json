@@ -18,7 +18,19 @@
     "test": "vitest",
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "test:report": "vitest run --coverage && node scripts/coverage-report.cjs"
+    "test:report": "vitest run --coverage && node scripts/coverage-report.cjs",
+    "test:unit": "vitest unit",
+    "test:unit:run": "vitest run unit",
+    "test:unit:coverage": "vitest run src/__tests__/unit --coverage",
+    "test:unit:report": "vitest run src/__tests__/unit --coverage && node scripts/coverage-report.cjs",
+    "test:int": "vitest src/__tests__/integration",
+    "test:int:run": "vitest run src/__tests__/integration",
+    "test:int:coverage": "vitest run src/__tests__/integration --coverage",
+    "test:int:report": "vitest run src/__tests__/integration --coverage && node scripts/coverage-report.cjs",
+    "test:component": "vitest src/__tests__/component",
+    "test:component:run": "vitest run src/__tests__/component",
+    "test:component:coverage": "vitest run src/__tests__/component --coverage",
+    "test:component:report": "vitest run src/__tests__/component --coverage && node scripts/coverage-report.cjs"
   },
   "dependencies": {
     "concurrently": "^8.2.2",
