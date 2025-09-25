@@ -5,16 +5,17 @@ import { beforeEach, vi } from 'vitest';
 vi.mock('@/services/apiClient');
 
 // Ensure clean localStorage between tests
-beforeEach(() => {
+beforeEach(async () => {
   if (typeof window !== 'undefined' && window.localStorage) {
     window.localStorage.clear();
   }
   // Reset all API mocks between tests
   try {
     // dynamic import to access the mocked module
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const { api } = require('@/services/apiClient');
-    const mocked = vi.mocked(api);
+    const mod = await import('@/services/apiClient');
+    const mocked = vi.mocked(mod.api);
     Object.values(mocked).forEach((fn: any) => typeof fn?.mockReset === 'function' && fn.mockReset());
-  } catch {}
+  } catch {
+    // ignore
+  }
 });

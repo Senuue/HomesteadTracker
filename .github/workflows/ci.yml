@@ -7,8 +7,8 @@ on:
     branches: [ main ]
 
 jobs:
-  all-tests:
-    name: All Tests (Coverage)
+  build-and-test:
+    name: Build server and run tests (coverage)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -16,67 +16,18 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 16
+          node-version: 18
           cache: 'npm'
       - name: Install dependencies
         run: npm ci
-      - name: Run all tests with coverage
+      - name: Build server (TypeScript)
+        run: npm run server:build
+      - name: Run tests with coverage
         run: npm run test:coverage
       - name: Color-coded per-file coverage
         run: node scripts/coverage-report.cjs
       - name: Upload coverage artifact
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-all
-          path: coverage/
-
-  unit-tests:
-    name: Unit Tests
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 16
-          cache: 'npm'
-      - run: npm ci
-      - run: npm run test:unit:coverage
-      - run: node scripts/coverage-report.cjs
-      - uses: actions/upload-artifact@v4
-        with:
-          name: coverage-unit
-          path: coverage/
-
-  integration-tests:
-    name: Integration Tests
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 16
-          cache: 'npm'
-      - run: npm ci
-      - run: npm run test:int:coverage
-      - run: node scripts/coverage-report.cjs
-      - uses: actions/upload-artifact@v4
-        with:
-          name: coverage-integration
-          path: coverage/
-
-  component-tests:
-    name: Component Tests
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 16
-          cache: 'npm'
-      - run: npm ci
-      - run: npm run test:component:coverage
-      - run: node scripts/coverage-report.cjs
-      - uses: actions/upload-artifact@v4
-        with:
-          name: coverage-component
+          name: coverage
           path: coverage/

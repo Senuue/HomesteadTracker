@@ -1,10 +1,11 @@
-import React from 'react';
-import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import React from 'react';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+
 import ChickenForm from '@/components/ChickenForm';
-import { renderWithProvider } from '@/test-utils';
 import { api } from '@/services/apiClient';
+import { renderWithProvider } from '@/test-utils';
 
 describe('ChickenForm', () => {
   beforeEach(() => {

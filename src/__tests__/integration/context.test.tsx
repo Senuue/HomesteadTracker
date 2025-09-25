@@ -1,6 +1,7 @@
+import { renderHook, act } from '@testing-library/react';
 import React from 'react';
 import { describe, it, expect, beforeEach } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
+
 import { ChickenProvider, useChicken } from '@/contexts/ChickenContext';
 import { api } from '@/services/apiClient';
 const mockedApi = api as any;

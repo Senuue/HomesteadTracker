@@ -1,4 +1,5 @@
 import { vi } from 'vitest';
+
 import type { Chicken, FeedLog, TagMap } from '@/types';
 
 export const api = {

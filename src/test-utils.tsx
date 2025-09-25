@@ -1,5 +1,6 @@
-import React from 'react';
 import { render, RenderOptions } from '@testing-library/react';
+import React from 'react';
+
 import { ChickenProvider } from '@/contexts/ChickenContext';
 import { api } from '@/services/apiClient';
 

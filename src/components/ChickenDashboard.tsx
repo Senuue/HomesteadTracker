@@ -1,8 +1,10 @@
-import React, { useMemo } from 'react';
-import { useChicken } from '@/contexts/ChickenContext';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
 import { format } from 'date-fns';
+import React, { useMemo } from 'react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
+
 import type { Chicken, FeedLog } from '@/types';
+
+import { useChicken } from '@/contexts/ChickenContext';
 
 const ChickenDashboard: React.FC = () => {
   const { chickens, loading } = useChicken();

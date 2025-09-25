@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { api } from '@/services/apiClient';
+
 import type { Chicken, FeedLog, TagMap } from '@/types';
+
+import { api } from '@/services/apiClient';
 
 interface ChickenContextValue {
   chickens: Chicken[];

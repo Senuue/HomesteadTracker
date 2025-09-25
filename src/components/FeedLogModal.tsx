@@ -1,6 +1,7 @@
-import React, { useMemo, useState } from 'react';
-import { useChicken } from '@/contexts/ChickenContext';
 import { format } from 'date-fns';
+import React, { useMemo, useState } from 'react';
+
+import { useChicken } from '@/contexts/ChickenContext';
 
 type Props = {
   chickenId: string;

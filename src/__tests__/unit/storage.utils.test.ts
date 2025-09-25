@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { storage } from '../../utils/storage';
+
+import { storage } from '@/utils/storage';
 
 describe('storage utils (pure)', () => {
   it('_recalcFeedAggregates computes totals from logs', () => {

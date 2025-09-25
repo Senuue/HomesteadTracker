@@ -71,28 +71,9 @@ npm run dev
 
 ---
 
-## Architecture
-
-```mermaid
-graph LR
-  A[React UI (Vite)] -- HTTP --> B[Express API]
-  B -- SQL --> C[(PostgreSQL)]
-  subgraph Frontend
-    A
-  end
-  subgraph Backend
-    B
-  end
-  subgraph Data
-    C
-  end
-```
-
----
-
 ## Testing
 
-We use Vitest + jsdom and React Testing Library. Coverage thresholds are set to 80% in `vitest.config.js`.
+We use Vitest + jsdom and React Testing Library. Coverage thresholds are set to 80% in `vitest.config.ts`.
 
 Global commands:
 
@@ -144,8 +125,8 @@ The script that prints colors to the console is at `scripts/coverage-report.cjs`
 
 ## Project Structure
 
-- `src/utils/storage.js` – `localStorage` data API (batches, feed logs, tags)
-- `src/contexts/ChickenContext.jsx` – React context for app state
+- `src/utils/storage.ts` – `localStorage` data API (batches, feed logs, tags)
+- `src/contexts/ChickenContext.tsx` – React context for app state
 - `src/components/` – UI components (List, Form, Dashboard, Modals)
 - `src/__tests__/` – Unit, integration, and component tests
 - `.github/workflows/ci.yml` – GitHub Actions for tests + coverage
@@ -166,15 +147,18 @@ If you forked/cloned without dependencies, the command above installs everything
 ## Run the App
 
 ```bash
-# start dev server (http://localhost:5173 by default)
-npm run dev
+# start API + UI together (recommended)
+npm run dev:all
 
-# build for production
-npm run build
+# or run separately in two terminals
+npm run server:dev   # API at http://localhost:5174
+npm run dev          # UI  at http://localhost:5173
 
-# preview the production build locally
-npm run preview
+# build for production (UI only)
+npm run build && npm run preview
 ```
+
+Note: If you modify `vite.config.ts` (e.g., aliases) or `index.html` entry points, stop the dev server and restart it so changes take effect.
 
 ## Testing
 
@@ -249,11 +233,10 @@ GitHub Actions workflow is defined in `.github/workflows/ci.yml`. It runs all te
 ---
 
 ## Architecture
-
 ```mermaid
-flowchart LR
-  A[React UI (Vite)] -- HTTP --> B[Express API]
-  B -- SQL --> C[(PostgreSQL)]
+graph LR
+  A[React UI Vite] -->|HTTP| B[Express API]
+  B -->|SQL| C[(PostgreSQL)]
   subgraph Frontend
     A
   end
@@ -264,7 +247,6 @@ flowchart LR
     C
   end
 ```
-
 ## Run with Docker (optional)
 
 We provide a `docker-compose.yml` to run Postgres and the API together. The database is initialized with `db/local_postgres.sql` on first run.

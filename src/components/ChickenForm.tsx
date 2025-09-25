@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { useChicken } from '@/contexts/ChickenContext';
+
 import type { Chicken } from '@/types';
+
+import { useChicken } from '@/contexts/ChickenContext';
 
 type ChickenFormProps = {
   chickenId?: string;
@@ -130,8 +132,8 @@ const ChickenForm: React.FC<ChickenFormProps> = ({ chickenId, onClose, onSuccess
         await addChicken(chickenData);
       }
 
-      onSuccess && onSuccess();
-      onClose && onClose();
+      onSuccess?.();
+      onClose?.();
     } catch (error) {
       console.error('Error saving chicken data:', error);
       setErrors({ submit: 'Failed to save chicken data. Please try again.' });

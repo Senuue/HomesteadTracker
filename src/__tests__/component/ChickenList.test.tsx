@@ -1,10 +1,11 @@
-import React from 'react';
-import { describe, it, expect, beforeEach } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { renderWithProvider } from '@/test-utils';
+import React from 'react';
+import { describe, it, expect, beforeEach } from 'vitest';
+
 import ChickenList from '@/components/ChickenList';
 import { api } from '@/services/apiClient';
+import { renderWithProvider } from '@/test-utils';
 
 const noop = () => {};
 

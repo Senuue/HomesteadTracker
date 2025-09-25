@@ -1,8 +1,10 @@
-import React, { useMemo, useState } from 'react';
-import { useChicken } from '@/contexts/ChickenContext';
 import { format } from 'date-fns';
 import { Edit, Trash2, Plus, NotebookPen, Filter, X } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
+
 import type { Chicken } from '@/types';
+
+import { useChicken } from '@/contexts/ChickenContext';
 
 type Props = {
   onEdit: (id: string) => void;
@@ -185,7 +187,7 @@ const ChickenList: React.FC<Props> = ({ onEdit, onAdd, onOpenFeedLogs, onOpenTag
                   }
                 }}
               />
-              {suggestions.length > 0 && (
+              {showSuggestions && suggestions.length > 0 && (
                 <div className="suggestions">
                   {suggestions.map((s) => (
                     <span
@@ -311,12 +313,12 @@ const ChickenList: React.FC<Props> = ({ onEdit, onAdd, onOpenFeedLogs, onOpenTag
 
                 <div className="info-row">
                   <span className="label">Feed Cost:</span>
-                  <span className="value">${(chicken.feedCost || 0).toFixed(2)}</span>
+                  <span className="value">${Number(chicken.feedCost ?? 0).toFixed(2)}</span>
                 </div>
 
                 <div className="info-row">
                   <span className="label">Feed Usage:</span>
-                  <span className="value">{(chicken.feedUsage || 0).toFixed(1)} lbs</span>
+                  <span className="value">{Number(chicken.feedUsage ?? 0).toFixed(1)} lbs</span>
                 </div>
 
                 {chicken.cullDate && (

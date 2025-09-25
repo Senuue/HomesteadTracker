@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { ChickenProvider } from '@/contexts/ChickenContext';
+
 import ChickenDashboard from '@/components/ChickenDashboard';
-import ChickenList from '@/components/ChickenList';
 import ChickenForm from '@/components/ChickenForm';
+import ChickenList from '@/components/ChickenList';
 import FeedLogModal from '@/components/FeedLogModal';
 import TagManagerModal from '@/components/TagManagerModal';
+import { ChickenProvider } from '@/contexts/ChickenContext';
 import './App.css';
 
 function App() {

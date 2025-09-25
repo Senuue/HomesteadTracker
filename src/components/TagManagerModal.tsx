@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+
 import { useChicken } from '@/contexts/ChickenContext';
 
 type Props = {
